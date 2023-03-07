@@ -58,12 +58,12 @@ git = "https://github.com/stellar/rs-stellar-xdr"
 rev = "a2f370c930bb94f7bc0c9ea0426ecef3700b90a9"
 default-features = false
 
-#[patch."https://github.com/stellar/rs-soroban-env"]
-#soroban-env-common = { path = "../rs-soroban-env/soroban-env-common" }
-#soroban-env-guest = { path = "../rs-soroban-env/soroban-env-guest" }
-#soroban-env-host = { path = "../rs-soroban-env/soroban-env-host/" }
-#[patch."https://github.com/stellar/rs-stellar-xdr"]
-#stellar-xdr = { path = "../rs-stellar-xdr/" }
+[patch."https://github.com/stellar/rs-soroban-env"]
+soroban-env-common = { path = "../rs-soroban-env/soroban-env-common" }
+soroban-env-guest = { path = "../rs-soroban-env/soroban-env-guest" }
+soroban-env-host = { path = "../rs-soroban-env/soroban-env-host/" }
+# [patch."https://github.com/stellar/rs-stellar-xdr"]
+# stellar-xdr = { path = "../rs-stellar-xdr/" }
 
 [profile.dev]
 overflow-checks = true
