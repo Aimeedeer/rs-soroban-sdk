@@ -21,3 +21,6 @@ mod contractimport_with_sha256;
 mod env;
 mod token_client;
 mod token_spec;
+mod proptest_comparison;
+mod proptest_rawval_cmp;
+mod proptest_scval_cmp;
