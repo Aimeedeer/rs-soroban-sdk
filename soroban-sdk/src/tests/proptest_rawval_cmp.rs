@@ -2,8 +2,8 @@
 #![allow(unreachable_code)]
 #![allow(unused)]
 
-use crate::arbitrary::SorobanArbitrary;
 use crate::arbitrary::composite::{ArbitraryRawVal, ArbitraryRawValMap, ArbitraryRawValVec};
+use crate::arbitrary::SorobanArbitrary;
 use crate::testutils::{Compare, Tag};
 use crate::xdr::ScVal;
 use crate::Env;
