@@ -3,7 +3,8 @@
 #![allow(unused)]
 
 use crate::arbitrary::SorobanArbitrary;
-use crate::testutils::Compare;
+use crate::arbitrary::composite::{ArbitraryRawVal, ArbitraryRawValMap, ArbitraryRawValVec};
+use crate::testutils::{Compare, Tag};
 use crate::xdr::ScVal;
 use crate::Env;
 use crate::RawVal;
@@ -16,14 +17,14 @@ proptest! {
     #![proptest_config(ProptestConfig::with_cases(100000))]
     #[test]
     fn test(
-        rawval_1 in arb::<<RawVal as SorobanArbitrary>::Prototype>(),
-        rawval_2 in arb::<<RawVal as SorobanArbitrary>::Prototype>(),
+        rawval_proto_1 in arb::<<RawVal as SorobanArbitrary>::Prototype>(),
+        rawval_proto_2 in arb::<<RawVal as SorobanArbitrary>::Prototype>(),
     ) {
         let env = &Env::default();
         let budget = env.budget().0;
 
-        let rawval_1 = RawVal::from_val(env, &rawval_1);
-        let rawval_2 = RawVal::from_val(env, &rawval_2);
+        let rawval_1 = RawVal::from_val(env, &rawval_proto_1);
+        let rawval_2 = RawVal::from_val(env, &rawval_proto_2);
 
         let (scval_1, scval_2) = {
             let scval_1 = ScVal::try_from_val(env, &rawval_1);
@@ -32,7 +33,34 @@ proptest! {
             let scval_1 = match scval_1 {
                 Ok(scval_1) => scval_1,
                 Err(e) => {
-                    return Ok(()); // todo
+                    // Some statuses can't be serialized
+                    // Vec and Map that contains Status can't be serialized
+                    let rawval_tag = rawval_1.get_tag();
+                    match rawval_tag {
+                        Tag::Status => {
+                            return Ok(());
+                        }
+                        Tag::VecObject
+                            | Tag::MapObject => {
+                                match rawval_proto_1 {
+                                    ArbitraryRawVal::Map(v) => {
+                                        match v {
+                                            ArbitraryRawValMap::StatusToStatus(_) => { return Ok(()); }
+                                            _ => {}
+                                        }
+                                    }
+                                    ArbitraryRawVal::Vec(v) => {
+                                        match v {
+                                            ArbitraryRawValVec::Status(_) => { return Ok(()); }
+                                            _ => {}
+                                        }
+                                    }
+                                    _ => {}
+                                }
+                            }
+                        _ => {}
+                    }
+
                     panic!(
                         "couldn't convert rawval to scval:\n\
                          {rawval_1:?},\n\
@@ -44,7 +72,34 @@ proptest! {
             let scval_2 = match scval_2 {
                 Ok(scval_2) => scval_2,
                 Err(e) => {
-                    return Ok(()); // todo
+                    // Some statuses can't be serialized
+                    // Vec and Map that contains Status can't be serialized
+                    let rawval_tag = rawval_2.get_tag();
+                    match rawval_tag {
+                        Tag::Status => {
+                            return Ok(());
+                        }
+                        Tag::VecObject
+                            | Tag::MapObject => {
+                                match rawval_proto_2 {
+                                    ArbitraryRawVal::Map(v) => {
+                                        match v {
+                                            ArbitraryRawValMap::StatusToStatus(_) => { return Ok(()); }
+                                            _ => {}
+                                        }
+                                    }
+                                    ArbitraryRawVal::Vec(v) => {
+                                        match v {
+                                            ArbitraryRawValVec::Status(_) => { return Ok(()); }
+                                            _ => {}
+                                        }
+                                    }
+                                    _ => {}
+                                }
+                            }
+                        _ => {}
+                    }
+
                     panic!(
                         "couldn't convert rawval to scval:\n\
                          {rawval_2:?},\n\

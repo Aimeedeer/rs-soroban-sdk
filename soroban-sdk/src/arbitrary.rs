@@ -235,7 +235,7 @@ mod scalars {
     impl SorobanArbitrary for bool {
         type Prototype = bool;
     }
-    
+
     impl SorobanArbitrary for u32 {
         type Prototype = u32;
     }
@@ -569,7 +569,7 @@ mod objects {
 }
 
 /// Implementations of `soroban_sdk::arbitrary::api` for `RawVal`.
-mod composite {
+pub mod composite {
     use arbitrary::Arbitrary;
 
     use crate::arbitrary::api::*;

@@ -19,7 +19,10 @@
 use arbitrary::Arbitrary;
 use core::cmp::Ordering;
 use libfuzzer_sys::fuzz_target;
-use soroban_sdk::arbitrary::{arbitrary, SorobanArbitrary};
+use soroban_sdk::arbitrary::{
+    arbitrary, SorobanArbitrary,
+    composite::{ArbitraryRawVal, ArbitraryRawValMap, ArbitraryRawValVec}
+};
 use soroban_sdk::testutils::{Compare, Tag};
 use soroban_sdk::xdr::ScVal;
 use soroban_sdk::Env;
@@ -54,11 +57,31 @@ fuzz_target!(|input: Test| {
                 // Some statuses can't be serialized
                 // Vec and Map that contains Status can't be serialized
                 let rawval_tag = rawval_1.get_tag();
-                if rawval_tag == Tag::Status
-                    || rawval_tag == Tag::VecObject
-                    || rawval_tag == Tag::MapObject {
-                    return;
+                match rawval_tag {
+                    Tag::Status => {
+                        return;
+                    }
+                    Tag::VecObject
+                        | Tag::MapObject => {
+                            match rawval_proto_1 {
+                                ArbitraryRawVal::Map(v) => {
+                                    match v {
+                                        ArbitraryRawValMap::StatusToStatus(_) => { return; }
+                                        _ => {}
+                                    }
+                                }
+                                ArbitraryRawVal::Vec(v) => {
+                                    match v {
+                                        ArbitraryRawValVec::Status(_) => { return; }
+                                        _ => {}
+                                    }
+                                }
+                                _ => {}
+                            }
+                        }
+                    _ => {}
                 }
+                
                 panic!(
                     "couldn't convert rawval to scval:\n\
                      {rawval_1:?},\n\
@@ -73,11 +96,31 @@ fuzz_target!(|input: Test| {
                 // Some statuses can't be serialized
                 // Vec and Map that contains Status can't be serialized
                 let rawval_tag = rawval_2.get_tag();
-                if rawval_tag == Tag::Status
-                    || rawval_tag == Tag::VecObject
-                    || rawval_tag == Tag::MapObject {
-                    return;
+                match rawval_tag {
+                    Tag::Status => {
+                        return;
+                    }
+                    Tag::VecObject
+                        | Tag::MapObject => {
+                            match rawval_proto_2 {
+                                ArbitraryRawVal::Map(v) => {
+                                    match v {
+                                        ArbitraryRawValMap::StatusToStatus(_) => { return; }
+                                        _ => {}
+                                    }
+                                }
+                                ArbitraryRawVal::Vec(v) => {
+                                    match v {
+                                        ArbitraryRawValVec::Status(_) => { return; }
+                                        _ => {}
+                                    }
+                                }
+                                _ => {}
+                            }
+                        }
+                    _ => {}
                 }
+                
                 panic!(
                     "couldn't convert rawval to scval:\n\
                      {rawval_2:?},\n\
