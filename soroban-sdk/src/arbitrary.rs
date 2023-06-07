@@ -85,7 +85,7 @@
 //! Types that implement `SorobanArbitrary` include:
 //!
 //! - `i32`, `u32`, `i64`, `u64`, `i128`, `u128`
-//! - `Static`, `Status`,
+//! - `Static`,
 //! - `Bytes`, `BytesN`, `Vec`, `Map`, `Address`, `RawVal`
 //!
 //! All user-defined contract types, those with the [`contracttype`] attribute,
@@ -253,28 +253,6 @@ mod scalars {
     }
 }
 
-/// Implementations of `soroban_sdk::arbitrary::api` for Soroban types that do not
-/// need access to the Soroban host environment.
-///
-/// These types
-///
-/// - do not have a distinct `Arbitrary` prototype,
-///   i.e. they use themselves as the `SorobanArbitrary::Prototype` type,
-/// - implement `Arbitrary` in the `soroban-env-common` crate,
-/// - trivially implement `TryFromVal<Env, SorobanArbitrary::Prototype>`,
-///
-/// Examples:
-///
-/// - `Status`
-mod simple {
-    use crate::arbitrary::api::*;
-    pub use crate::Status;
-
-    impl SorobanArbitrary for Status {
-        type Prototype = Status;
-    }
-}
-
 /// Implementations of `soroban_sdk::arbitrary::api` for Soroban types that do
 /// need access to the Soroban host environment.
 ///
@@ -293,9 +271,10 @@ mod objects {
     use crate::ConversionError;
     use crate::{Env, IntoVal, TryFromVal};
 
-    use crate::{Address, Bytes, BytesN, Map, Symbol, Vec};
+    use crate::{Address, Bytes, BytesN, Map, String, Symbol, Vec};
 
     use std::vec::Vec as RustVec;
+    use std::string::String as RustString;
 
     //////////////////////////////////
 
@@ -336,8 +315,26 @@ mod objects {
     //////////////////////////////////
 
     #[derive(Arbitrary, Debug, Clone, Eq, PartialEq, Ord, PartialOrd)]
+    pub struct ArbitraryString {
+        s: RustString,
+    }
+
+    impl SorobanArbitrary for String {
+        type Prototype = ArbitraryString;
+    }
+
+    impl TryFromVal<Env, ArbitraryString> for String {
+        type Error = ConversionError;
+        fn try_from_val(env: &Env, v: &ArbitraryString) -> Result<Self, Self::Error> {
+            Self::try_from_val(env, &&v.s[..])
+        }
+    }
+
+    //////////////////////////////////
+
+    #[derive(Arbitrary, Debug, Clone, Eq, PartialEq, Ord, PartialOrd)]
     pub struct ArbitrarySymbol {
-        s: String,
+        s: RustString,
     }
 
     impl SorobanArbitrary for Symbol {
@@ -444,7 +441,6 @@ mod composite {
     use crate::{Env, IntoVal, TryFromVal};
 
     use super::objects::*;
-    use super::simple::*;
     use crate::{Address, Bytes, Map, RawVal, Vec};
 
     #[derive(Arbitrary, Debug, Clone)]
@@ -457,7 +453,6 @@ mod composite {
         U128(u128),
         I128(i128),
         //Symbol(Symbol), // todo
-        Status(Status),
         Bytes(ArbitraryBytes),
         Address(<Address as SorobanArbitrary>::Prototype),
         Vec(ArbitraryRawValVec),
@@ -478,7 +473,6 @@ mod composite {
                 ArbitraryRawVal::I64(v) => v.into_val(env),
                 ArbitraryRawVal::U128(v) => v.into_val(env),
                 ArbitraryRawVal::I128(v) => v.into_val(env),
-                ArbitraryRawVal::Status(v) => v.into_val(env),
                 ArbitraryRawVal::Bytes(v) => {
                     let v: Bytes = v.into_val(env);
                     v.into_val(env)
