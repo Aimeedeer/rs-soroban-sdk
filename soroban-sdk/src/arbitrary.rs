@@ -952,7 +952,9 @@ mod fuzz_test_helpers {
 #[cfg(test)]
 mod tests {
     use crate::arbitrary::*;
-    use crate::{Bytes, BytesN, Duration, Map, String, Symbol, Timepoint, Val, Vec, I256, U256};
+    use crate::{
+        Address, Bytes, BytesN, Duration, Map, String, Symbol, Timepoint, Val, Vec, I256, U256,
+    };
     use crate::{Env, IntoVal};
     use arbitrary::{Arbitrary, Unstructured};
     use rand::RngCore;
@@ -1069,6 +1071,10 @@ mod tests {
         run_test::<Vec<Duration>>()
     }
 
+    fn test_vec_val() {
+        run_test::<Vec<Val>>()
+    }
+    
     #[test]
     fn test_map_u32() {
         run_test::<Map<u32, Vec<u32>>>()
@@ -1105,8 +1111,13 @@ mod tests {
     }
 
     #[test]
-    fn test_raw_val() {
+    fn test_val() {
         run_test::<Val>()
+    }
+
+    #[test]
+    fn test_address() {
+        run_test::<Address>()
     }
 
     #[test]
