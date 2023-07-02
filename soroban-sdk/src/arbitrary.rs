@@ -593,7 +593,9 @@ mod composite {
 
     use super::objects::*;
     use super::simple::*;
-    use crate::{Address, Bytes, BytesN, Duration, Map, String, Symbol, Timepoint, Val, Vec, I256, U256};
+    use crate::{
+        Address, Bytes, BytesN, Duration, Map, String, Symbol, Timepoint, Val, Vec, I256, U256,
+    };
 
     #[derive(Arbitrary, Debug, Clone, Eq, PartialEq, Ord, PartialOrd)]
     pub enum ArbitraryVal {
@@ -957,7 +959,8 @@ mod fuzz_test_helpers {
 mod tests {
     use crate::arbitrary::*;
     use crate::{
-        Address, Bytes, BytesN, Duration, Map, String, Symbol, Timepoint, Val, Vec, I256, U256, Error,
+        Address, Bytes, BytesN, Duration, Error, Map, String, Symbol, Timepoint, Val, Vec, I256,
+        U256,
     };
     use crate::{Env, IntoVal};
     use arbitrary::{Arbitrary, Unstructured};
@@ -989,7 +992,7 @@ mod tests {
     fn test_bool() {
         run_test::<bool>()
     }
-        
+
     #[test]
     fn test_u32() {
         run_test::<u32>()
@@ -1064,7 +1067,7 @@ mod tests {
     fn test_duration() {
         run_test::<Duration>()
     }
-    
+
     #[test]
     fn test_val() {
         run_test::<Val>()
@@ -1168,7 +1171,7 @@ mod tests {
     fn test_vec_val() {
         run_test::<Vec<Val>>()
     }
-    
+
     #[test]
     fn test_map_u32() {
         run_test::<Map<u32, Vec<u32>>>()
