@@ -465,6 +465,65 @@ mod objects {
     //////////////////////////////////
 
     #[derive(Arbitrary, Debug, Clone, Eq, PartialEq, Ord, PartialOrd)]
+    pub struct ArbitraryAddress {
+        inner: [u8; 32],
+    }
+
+    impl SorobanArbitrary for Address {
+        type Prototype = ArbitraryAddress;
+    }
+
+    impl TryFromVal<Env, ArbitraryAddress> for Address {
+        type Error = ConversionError;
+        fn try_from_val(env: &Env, v: &ArbitraryAddress) -> Result<Self, Self::Error> {
+            use crate::env::xdr::{Hash, ScAddress};
+
+            let sc_addr = ScVal::Address(ScAddress::Contract(Hash(v.inner)));
+            Ok(sc_addr.into_val(env))
+        }
+    }
+
+    //////////////////////////////////
+
+    #[derive(Arbitrary, Debug, Clone, Eq, PartialEq, Ord, PartialOrd)]
+    pub struct ArbitraryTimepoint {
+        inner: u64,
+    }
+
+    impl SorobanArbitrary for Timepoint {
+        type Prototype = ArbitraryTimepoint;
+    }
+
+    impl TryFromVal<Env, ArbitraryTimepoint> for Timepoint {
+        type Error = ConversionError;
+        fn try_from_val(env: &Env, v: &ArbitraryTimepoint) -> Result<Self, Self::Error> {
+            let sc_timepoint = ScVal::Timepoint(crate::xdr::TimePoint::from(v.inner));
+            Ok(sc_timepoint.into_val(env))
+        }
+    }
+
+    //////////////////////////////////
+
+    #[derive(Arbitrary, Debug, Clone, Eq, PartialEq, Ord, PartialOrd)]
+    pub struct ArbitraryDuration {
+        inner: u64,
+    }
+
+    impl SorobanArbitrary for Duration {
+        type Prototype = ArbitraryDuration;
+    }
+
+    impl TryFromVal<Env, ArbitraryDuration> for Duration {
+        type Error = ConversionError;
+        fn try_from_val(env: &Env, v: &ArbitraryDuration) -> Result<Self, Self::Error> {
+            let sc_duration = ScVal::Duration(crate::xdr::Duration::from(v.inner));
+            Ok(sc_duration.into_val(env))
+        }
+    }
+
+    //////////////////////////////////
+
+    #[derive(Arbitrary, Debug, Clone, Eq, PartialEq, Ord, PartialOrd)]
     pub struct ArbitraryVec<T> {
         vec: RustVec<T>,
     }
@@ -522,65 +581,6 @@ mod objects {
             Ok(map)
         }
     }
-
-    //////////////////////////////////
-
-    #[derive(Arbitrary, Debug, Clone, Eq, PartialEq, Ord, PartialOrd)]
-    pub struct ArbitraryAddress {
-        inner: [u8; 32],
-    }
-
-    impl SorobanArbitrary for Address {
-        type Prototype = ArbitraryAddress;
-    }
-
-    impl TryFromVal<Env, ArbitraryAddress> for Address {
-        type Error = ConversionError;
-        fn try_from_val(env: &Env, v: &ArbitraryAddress) -> Result<Self, Self::Error> {
-            use crate::env::xdr::{Hash, ScAddress};
-
-            let sc_addr = ScVal::Address(ScAddress::Contract(Hash(v.inner)));
-            Ok(sc_addr.into_val(env))
-        }
-    }
-
-    //////////////////////////////////
-
-    #[derive(Arbitrary, Debug, Clone, Eq, PartialEq, Ord, PartialOrd)]
-    pub struct ArbitraryTimepoint {
-        inner: u64,
-    }
-
-    impl SorobanArbitrary for Timepoint {
-        type Prototype = ArbitraryTimepoint;
-    }
-
-    impl TryFromVal<Env, ArbitraryTimepoint> for Timepoint {
-        type Error = ConversionError;
-        fn try_from_val(env: &Env, v: &ArbitraryTimepoint) -> Result<Self, Self::Error> {
-            let sc_timepoint = ScVal::Timepoint(crate::xdr::TimePoint::from(v.inner));
-            Ok(sc_timepoint.into_val(env))
-        }
-    }
-
-    //////////////////////////////////
-
-    #[derive(Arbitrary, Debug, Clone, Eq, PartialEq, Ord, PartialOrd)]
-    pub struct ArbitraryDuration {
-        inner: u64,
-    }
-
-    impl SorobanArbitrary for Duration {
-        type Prototype = ArbitraryDuration;
-    }
-
-    impl TryFromVal<Env, ArbitraryDuration> for Duration {
-        type Error = ConversionError;
-        fn try_from_val(env: &Env, v: &ArbitraryDuration) -> Result<Self, Self::Error> {
-            let sc_duration = ScVal::Duration(crate::xdr::Duration::from(v.inner));
-            Ok(sc_duration.into_val(env))
-        }
-    }
 }
 
 /// Implementations of `soroban_sdk::arbitrary::api` for `Val`.
@@ -593,7 +593,7 @@ mod composite {
 
     use super::objects::*;
     use super::simple::*;
-    use crate::{Address, Bytes, Duration, Map, String, Symbol, Timepoint, Val, Vec, I256, U256};
+    use crate::{Address, Bytes, BytesN, Duration, Map, String, Symbol, Timepoint, Val, Vec, I256, U256};
 
     #[derive(Arbitrary, Debug, Clone, Eq, PartialEq, Ord, PartialOrd)]
     pub enum ArbitraryVal {
@@ -687,6 +687,7 @@ mod composite {
         U256(<Vec<U256> as SorobanArbitrary>::Prototype),
         I256(<Vec<I256> as SorobanArbitrary>::Prototype),
         Bytes(<Vec<Bytes> as SorobanArbitrary>::Prototype),
+        BytesN(<Vec<BytesN<32>> as SorobanArbitrary>::Prototype),
         String(<Vec<String> as SorobanArbitrary>::Prototype),
         Symbol(<Vec<Symbol> as SorobanArbitrary>::Prototype),
         Vec(<Vec<Vec<u32>> as SorobanArbitrary>::Prototype),
@@ -748,6 +749,9 @@ mod composite {
                 ArbitraryValVec::Bytes(v) => {
                     let v: Vec<Bytes> = v.into_val(env);
                     v.into_val(env)
+                }
+                ArbitraryValVec::BytesN(v) => {
+                    todo!()
                 }
                 ArbitraryValVec::String(v) => {
                     let v: Vec<String> = v.into_val(env);
@@ -953,7 +957,7 @@ mod fuzz_test_helpers {
 mod tests {
     use crate::arbitrary::*;
     use crate::{
-        Address, Bytes, BytesN, Duration, Map, String, Symbol, Timepoint, Val, Vec, I256, U256,
+        Address, Bytes, BytesN, Duration, Map, String, Symbol, Timepoint, Val, Vec, I256, U256, Error,
     };
     use crate::{Env, IntoVal};
     use arbitrary::{Arbitrary, Unstructured};
@@ -976,6 +980,16 @@ mod tests {
         }
     }
 
+    #[test]
+    fn test_unit() {
+        run_test::<()>()
+    }
+
+    #[test]
+    fn test_bool() {
+        run_test::<bool>()
+    }
+        
     #[test]
     fn test_u32() {
         run_test::<u32>()
@@ -1027,13 +1041,48 @@ mod tests {
     }
 
     #[test]
+    fn test_bytes_n() {
+        run_test::<BytesN<64>>()
+    }
+
+    #[test]
     fn test_symbol() {
         run_test::<Symbol>()
     }
 
     #[test]
-    fn test_bytes_n() {
-        run_test::<BytesN<64>>()
+    fn test_address() {
+        run_test::<Address>()
+    }
+
+    #[test]
+    fn test_timepoint() {
+        run_test::<Timepoint>()
+    }
+
+    #[test]
+    fn test_duration() {
+        run_test::<Duration>()
+    }
+    
+    #[test]
+    fn test_val() {
+        run_test::<Val>()
+    }
+
+    #[test]
+    fn test_vec_void() {
+        run_test::<Vec<()>>()
+    }
+
+    #[test]
+    fn test_vec_bool() {
+        run_test::<Vec<bool>>()
+    }
+
+    #[test]
+    fn test_vec_error() {
+        run_test::<Vec<Error>>()
     }
 
     #[test]
@@ -1047,8 +1096,53 @@ mod tests {
     }
 
     #[test]
+    fn test_vec_u64() {
+        run_test::<Vec<u64>>()
+    }
+
+    #[test]
+    fn test_vec_i64() {
+        run_test::<Vec<i64>>()
+    }
+
+    #[test]
+    fn test_vec_u128() {
+        run_test::<Vec<u128>>()
+    }
+
+    #[test]
+    fn test_vec_i128() {
+        run_test::<Vec<i128>>()
+    }
+
+    #[test]
+    fn test_vec_u256() {
+        run_test::<Vec<U256>>()
+    }
+
+    #[test]
+    fn test_vec_i256() {
+        run_test::<Vec<I256>>()
+    }
+
+    #[test]
     fn test_vec_bytes() {
         run_test::<Vec<Bytes>>()
+    }
+
+    #[test]
+    fn test_vec_string() {
+        run_test::<Vec<String>>()
+    }
+
+    #[test]
+    fn test_vec_symbol() {
+        run_test::<Vec<Symbol>>()
+    }
+
+    #[test]
+    fn test_vec_vec_u32() {
+        run_test::<Vec<Vec<u32>>>()
     }
 
     #[test]
