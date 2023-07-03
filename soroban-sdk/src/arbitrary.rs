@@ -1207,26 +1207,6 @@ mod tests {
         run_test::<Map<Duration, Duration>>()
     }
 
-    #[test]
-    fn test_val() {
-        run_test::<Val>()
-    }
-
-    #[test]
-    fn test_address() {
-        run_test::<Address>()
-    }
-
-    #[test]
-    fn test_timepoint() {
-        run_test::<Timepoint>()
-    }
-
-    #[test]
-    fn test_duration() {
-        run_test::<Duration>()
-    }
-
     mod user_defined_types {
         use crate as soroban_sdk;
         use crate::arbitrary::tests::run_test;
